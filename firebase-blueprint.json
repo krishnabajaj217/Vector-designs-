@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with basic public display properties",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique user ID matching Authentication UID" },
+        "displayName": { "type": "string", "description": "Display name of the user" },
+        "photoURL": { "type": "string", "description": "Photo URL of the user avatar" },
+        "email": { "type": "string", "description": "User email address" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["uid", "displayName", "email", "createdAt"]
+    },
+    "LogoDesign": {
+      "title": "LogoDesign",
+      "description": "Saved logo design containing vector SVG and interactive animation settings",
+      "type": "object",
+      "properties": {
+        "logoId": { "type": "string", "description": "Unique document ID" },
+        "ownerId": { "type": "string", "description": "Owner UID matching the signed-in user" },
+        "companyName": { "type": "string", "description": "Brand or company name" },
+        "tagline": { "type": "string", "description": "Secondary tagline statement" },
+        "concept": { "type": "string", "description": "Creative narrative explaining vector metaphors" },
+        "hexColors": { "type": "array", "description": "The custom brand palette colors used in the design" },
+        "logoSvg": { "type": "string", "description": "Valid raw inline SVG markup" },
+        "recommendedAnimation": { "type": "string", "description": "The initial recommended motion effect" },
+        "animationSettings": {
+          "type": "object",
+          "description": "Dynamic motion parameters and fine-tuning details"
+        },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when logo was saved" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when logo config was updated" }
+      },
+      "required": [
+        "ownerId",
+        "companyName",
+        "tagline",
+        "concept",
+        "hexColors",
+        "logoSvg",
+        "recommendedAnimation",
+        "animationSettings",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Profiles for registered brand designers"
+    },
+    "/logos/{logoId}": {
+      "schema": "LogoDesign",
+      "description": "User specific generated logo assets and animated presets"
+    }
+  }
+}

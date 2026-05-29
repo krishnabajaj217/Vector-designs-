@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // First Rule Block: Global safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User Profile Document Validation
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'displayName', 'photoURL', 'email', 'createdAt'])
+        && data.keys().size() == 5
+        && data.uid is string
+        && data.uid == request.auth.uid
+        && data.displayName is string
+        && data.displayName.size() <= 150
+        && data.photoURL is string
+        && data.photoURL.size() <= 1000
+        && data.email is string
+        && data.email == request.auth.token.email
+        && data.createdAt == request.time;
+    }
+
+    // Logo Document Validation
+    function isValidLogo(data) {
+      return data.keys().hasAll([
+          'ownerId', 'companyName', 'tagline', 'concept', 
+          'hexColors', 'logoSvg', 'recommendedAnimation', 
+          'animationSettings', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().size() == 10
+        && data.ownerId is string
+        && data.ownerId == request.auth.uid
+        && data.companyName is string
+        && data.companyName.size() <= 150
+        && data.tagline is string
+        && data.tagline.size() <= 200
+        && data.concept is string
+        && data.concept.size() <= 2000
+        && data.hexColors is list
+        && data.hexColors.size() <= 16
+        && data.logoSvg is string
+        && data.logoSvg.size() <= 900000
+        && data.recommendedAnimation is string
+        && data.recommendedAnimation.size() <= 64
+        && data.animationSettings is map
+        && data.animationSettings.keys().hasAll(['type', 'duration', 'delay', 'easing', 'loop', 'intensity'])
+        && data.animationSettings.keys().size() == 6
+        && data.animationSettings.type is string
+        && data.animationSettings.duration is number
+        && data.animationSettings.delay is number
+        && data.animationSettings.easing is string
+        && data.animationSettings.loop is bool
+        && data.animationSettings.intensity is number;
+    }
+
+    // MATCH: User Profiles collection
+    match /users/{userId} {
+      allow get: if isVerifiedUser() && request.auth.uid == userId;
+      allow list: if false; // Strict isolation: users cannot browse other users
+      
+      allow create: if isVerifiedUser() 
+        && isValidId(userId) 
+        && userId == request.auth.uid
+        && isValidUser(incoming());
+        
+      allow update: if isVerifiedUser() 
+        && userId == request.auth.uid
+        && isValidUser(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().email == existing().email
+        && incoming().uid == existing().uid;
+        
+      allow delete: if isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    // MATCH: Logos designs collection
+    match /logos/{logoId} {
+      // Secure list query enforcer
+      allow list: if isVerifiedUser() && resource.data.ownerId == request.auth.uid;
+      
+      allow get: if isVerifiedUser() 
+        && isValidId(logoId) 
+        && resource.data.ownerId == request.auth.uid;
+        
+      allow create: if isVerifiedUser() 
+        && isValidId(logoId)
+        && isValidLogo(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+        
+      allow update: if isVerifiedUser() 
+        && isValidId(logoId)
+        && existing().ownerId == request.auth.uid
+        && isValidLogo(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time;
+        
+      allow delete: if isVerifiedUser() 
+        && isValidId(logoId) 
+        && existing().ownerId == request.auth.uid;
+    }
+
+  }
+}
