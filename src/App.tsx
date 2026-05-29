@@ -476,43 +476,49 @@ export default function App() {
                 ) : (
                   <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                     {savedLogos.map((saved) => (
-                      <button
+                      <div
                         key={saved.logoId}
-                        type="button"
-                        onClick={() => {
-                          setActiveBrand(saved);
-                          setCompanyName(saved.companyName);
-                          setTagline(saved.tagline);
-                          setAnimationType(saved.recommendedAnimation as AnimationType);
-                          setSettings((prev) => ({
-                            ...prev,
-                            type: saved.recommendedAnimation as AnimationType
-                          }));
-                          addLog(`Loaded design [ID: ${saved.logoId}] from digital cloud bank.`);
-                        }}
-                        className={`w-full p-2 rounded text-left flex items-center justify-between transition-all border ${
+                        className={`w-full p-2 rounded flex items-center justify-between transition-all border ${
                           activeBrand.logoId === saved.logoId
-                            ? 'bg-[#A3E635]/10 border-[#A3E635] text-white'
-                            : 'bg-zinc-950/80 border-dashed border-zinc-850 text-zinc-400 hover:border-zinc-700 hover:text-white'
+                            ? 'bg-[#A3E635]/15 border-[#A3E635]'
+                            : 'bg-zinc-950/80 border-dashed border-zinc-850 hover:border-zinc-750'
                         }`}
                       >
-                        <div className="min-w-0 flex-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveBrand(saved);
+                            setCompanyName(saved.companyName);
+                            setTagline(saved.tagline);
+                            setAnimationType(saved.recommendedAnimation as AnimationType);
+                            setSettings((prev) => ({
+                              ...prev,
+                              type: saved.recommendedAnimation as AnimationType
+                            }));
+                            addLog(`Loaded design [ID: ${saved.logoId}] from digital cloud bank.`);
+                          }}
+                          className={`min-w-0 flex-1 text-left ${
+                            activeBrand.logoId === saved.logoId
+                              ? 'text-white'
+                              : 'text-zinc-400 hover:text-white'
+                          }`}
+                        >
                           <div className="text-[10px] font-display font-black leading-tight uppercase truncate">
                             {saved.companyName}
                           </div>
                           <div className="text-[8px] font-mono text-zinc-500 truncate leading-none mt-0.5">
                             ID: {saved.logoId?.slice(0, 8)}...
                           </div>
-                        </div>
+                        </button>
 
                         <div className="flex items-center gap-1 shrink-0 ml-2">
-                          <span className="text-[8px] font-mono text-zinc-650 bg-zinc-900 px-1 py-0.5 rounded uppercase font-bold">
+                          <span className="text-[8px] font-mono text-zinc-500 bg-zinc-900/80 px-1 py-0.5 rounded uppercase font-bold">
                             {saved.recommendedAnimation.split('-')[0]}
                           </span>
                           <button
                             type="button"
                             onClick={(e) => handleDeleteLogo(saved.logoId || '', e)}
-                            className="p-1 text-zinc-500 hover:text-red-400 transition-colors rounded"
+                            className="p-1 text-zinc-500 hover:text-red-450 transition-colors rounded hover:bg-red-950/20"
                             title="Delete from cloud database"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -520,7 +526,7 @@ export default function App() {
                             </svg>
                           </button>
                         </div>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 )}
